@@ -1,5 +1,6 @@
 package server;
 
+import json.JSON;
 import server.commands.Command;
 import server.parsing.Parser;
 
@@ -29,17 +30,29 @@ public class Server {
                     System.out.printf("Received: %s%n", income);
 
                     String out;
-                    ArrayList<String> commands = Parser.parseCommand(income);
-                    if (commands == null) break;
+                    ArrayList<String> commands = Parser.parseJsonPojoCommand(JSON.deserialize(income));
+                    if (commands == null) {
+                        out = JSON.serialize("OK", null, null);
+                        output.writeUTF(out);
+                        System.out.printf("Sent: %s%n", out);
+                        break;
+                    }
                     if (commands.isEmpty()) {
-                        out = "ERROR";
+                        out = JSON.serialize("ERROR", null, null);
                     } else {
                         Command command = Menu.createCommand(commands);
                         if (command == null) {
-                            out = "ERROR";
+                            out = JSON.serialize("ERROR", null, null);
                         } else {
                             Menu invoker = new Menu(command);
-                            out = invoker.executeCommand();
+                            String result = invoker.executeCommand();
+                            if (!"OK".equals(result) && !"ERROR".equals(result)) {
+                                out = JSON.serialize("OK", null, result);
+                            } else if ("OK".equals(result)) {
+                                out = JSON.serialize("OK", null, null);
+                            } else {
+                                out = JSON.serialize("ERROR", "No such key", null);
+                            }
                         }
                     }
 

@@ -20,7 +20,7 @@ public class Dao {
 
     public String get(String cell) {
         String res = cells.get(cell);
-        return res.isEmpty() ? "ERROR" : res;
+        return res == null ? "ERROR" : res;
     }
 
     public String set(String cell, String text) {

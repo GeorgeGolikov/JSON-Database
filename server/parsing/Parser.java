@@ -1,5 +1,6 @@
 package server.parsing;
 
+import json.UserCommand;
 import server.Menu;
 
 import java.util.ArrayList;
@@ -52,5 +53,19 @@ public final class Parser {
             }
             return new ArrayList<>();
         }
+    }
+
+    public static ArrayList<String> parseJsonPojoCommand(UserCommand command) {
+        if (command == null) return new ArrayList<>();
+
+        if ("exit".equals(command.getType())) {
+            return null;
+        }
+
+        if (command.getValue() == null) {
+            return new ArrayList<>(List.of(command.getType(), command.getKey()));
+        }
+
+        return new ArrayList<>(List.of(command.getType(), command.getKey(), command.getValue()));
     }
 }
