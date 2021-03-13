@@ -1,12 +1,11 @@
 package server;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Dao {
-    public static int CAPACITY = 1000;
-
     private static Dao instance;
-    private final ArrayList<String> cells;
+    private final Map<String, String> cells;
 
     public static Dao getInstance() {
         if (instance == null) {
@@ -16,40 +15,20 @@ public class Dao {
     }
 
     private Dao() {
-        cells = new ArrayList<>(CAPACITY);
-        for (int i = 0; i < CAPACITY; ++i) {
-            cells.add("");
-        }
+        cells = new HashMap<>();
     }
 
-    public String get(int cell) {
-        if (checkCell(cell)) {
-            String res = cells.get(cell);
-            if (res.isEmpty()) {
-                return "ERROR";
-            }
-            return res;
-        }
-        return "ERROR";
+    public String get(String cell) {
+        String res = cells.get(cell);
+        return res.isEmpty() ? "ERROR" : res;
     }
 
-    public String set(int cell, String text) {
-        if (checkCell(cell)) {
-            cells.set(cell, text);
-            return "OK";
-        }
-        return "ERROR";
+    public String set(String cell, String text) {
+        cells.put(cell, text);
+        return "OK";
     }
 
-    public String delete(int cell) {
-        if (checkCell(cell)) {
-            cells.set(cell, "");
-            return "OK";
-        }
-        return "ERROR";
-    }
-
-    private static boolean checkCell(int cell) {
-        return cell >= 0 && cell < CAPACITY;
+    public String delete(String cell) {
+        return cells.remove(cell) == null ? "ERROR" : "OK";
     }
 }

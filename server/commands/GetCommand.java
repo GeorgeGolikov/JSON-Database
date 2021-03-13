@@ -4,9 +4,9 @@ import server.Dao;
 
 public class GetCommand implements Command {
 
-    private final int cell;
+    private final String cell;
 
-    public GetCommand(Integer cell) {
+    public GetCommand(String cell) {
         this.cell = cell;
     }
 

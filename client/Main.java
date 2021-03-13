@@ -9,7 +9,7 @@ public class Main {
     }
 
     private static Args parseCLArgs(String[] args) {
-        if (args.length == 1 && "exit".equals(args[0])) return null;
+        if (args.length == 2 && "exit".equals(args[1])) return null;
 
         Args arguments = new Args();
         JCommander.newBuilder()

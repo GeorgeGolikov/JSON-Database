@@ -4,9 +4,9 @@ import server.Dao;
 
 public class DeleteCommand implements Command {
 
-    private final int cell;
+    private final String cell;
 
-    public DeleteCommand(Integer cell) {
+    public DeleteCommand(String cell) {
         this.cell = cell;
     }
 

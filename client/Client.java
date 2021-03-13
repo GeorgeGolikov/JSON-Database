@@ -1,5 +1,7 @@
 package client;
 
+import json.JSON;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -18,17 +20,7 @@ public class Client {
                 DataInputStream input = new DataInputStream(socket.getInputStream());
                 DataOutputStream output = new DataOutputStream(socket.getOutputStream())
         ) {
-            if (args == null) {
-                output.writeUTF("exit");
-                return;
-            }
-
-            String strToSend;
-            if (args.getText() != null) {
-                strToSend = String.format("%s %d %s", args.getRequest(), args.getCell(), args.getText());
-            } else {
-                strToSend = String.format("%s %d", args.getRequest(), args.getCell());
-            }
+            String strToSend = args == null ? "{\"type\":\"exit\"}" : JSON.serialize(args);
 
             output.writeUTF(strToSend);
             System.out.printf("Sent: %s%n", strToSend);

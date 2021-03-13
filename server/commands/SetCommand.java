@@ -4,10 +4,10 @@ import server.Dao;
 
 public class SetCommand implements Command {
 
-    private final int cell;
+    private final String cell;
     private final String text;
 
-    public SetCommand(int cell, String text) {
+    public SetCommand(String cell, String text) {
         this.cell = cell;
         this.text = text;
     }

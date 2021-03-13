@@ -6,17 +6,17 @@ public class Args {
     @Parameter(names = "-t", description = "Type of request")
     private String request;
 
-    @Parameter(names = "-i", description = "The index of the cell")
-    private Integer cell;
+    @Parameter(names = "-k", description = "The index of the cell")
+    private String cell;
 
-    @Parameter(names = "-m", description = "The value to save in the database")
-    private String text;
+    @Parameter(names = "-v", description = "The value to save in the database")
+    private String text = "";
 
     public String getRequest() {
         return request;
     }
 
-    public Integer getCell() {
+    public String getCell() {
         return cell;
     }
 

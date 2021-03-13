@@ -41,18 +41,13 @@ public final class Parser {
                     return null;
                 }
 
-                try {
-                    if (scanner.hasNext()) {
-                        Integer cell = Integer.parseInt(scanner.next());
+                if (scanner.hasNext()) {
+                    String cell = scanner.next();
 
-                        if (scanner.hasNext()) {
-                            return new ArrayList<>(List.of(command, cell.toString(),
-                                    scanner.nextLine().trim()));
-                        }
-                        return new ArrayList<>(List.of(command, cell.toString()));
+                    if (scanner.hasNext()) {
+                        return new ArrayList<>(List.of(command, cell, scanner.nextLine().trim()));
                     }
-                } catch (NumberFormatException e) {
-                    System.out.println("Provided cell is not a number!");
+                    return new ArrayList<>(List.of(command, cell));
                 }
             }
             return new ArrayList<>();
