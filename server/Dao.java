@@ -1,11 +1,18 @@
 package server;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 public class Dao {
     private static Dao instance;
     private final Map<String, String> cells;
+
+    private final String pathToFile =
+            "src/server/data/db.json";
+    private final File dbJson = new File(pathToFile);
+    private Scanner scanner = null;
 
     public static Dao getInstance() {
         if (instance == null) {
