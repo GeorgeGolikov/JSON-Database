@@ -28,10 +28,7 @@ public class Server {
                 Socket socket = serverSocket.accept();
                 executor.submit(() -> {
                     try {
-                        boolean stop = processRequests(socket);
-                        if (stop) {
-                            executor.shutdownNow();
-                        }
+                        processRequests(socket);
                     } catch (IOException e) {
                         System.out.println(e.getMessage() + "!!!");
                     }
@@ -42,7 +39,7 @@ public class Server {
         }
     }
 
-    public static boolean processRequests(Socket socket) throws IOException {
+    public static void processRequests(Socket socket) throws IOException {
         DataInputStream input = new DataInputStream(socket.getInputStream());
         DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 
@@ -56,7 +53,7 @@ public class Server {
             output.writeUTF(out);
             System.out.printf("Sent: %s%n", out);
             socket.close();
-            return true;
+            Runtime.getRuntime().exit(0);
         }
         if (commands.isEmpty()) {
             out = JSON.serialize("ERROR", null, null);
@@ -83,6 +80,5 @@ public class Server {
         System.out.printf("Sent: %s%n", out);
 
         socket.close();
-        return false;
     }
 }

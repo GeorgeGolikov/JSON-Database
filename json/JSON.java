@@ -1,6 +1,6 @@
 package json;
 
-import client.Args;
+import client.args.Args;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -10,19 +10,38 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class JSON {
     public static String serialize(Args args) {
-        Map<String, String> command = new LinkedHashMap<>();
-        command.put("type", args.getRequest());
-        command.put("key", args.getCell());
-        if (!"".equals(args.getText())) command.put("value", args.getText());
+        String result = "";
 
-        return new Gson().toJson(command);
+        if ("-in".equals(args.getRequest())) {
+            result = readFileAsString(args.getCell());
+        } else {
+            Map<String, String> command = new LinkedHashMap<>();
+            command.put("type", args.getRequest());
+            command.put("key", args.getCell());
+            if (!"".equals(args.getText())) command.put("value", args.getText());
+            result = new Gson().toJson(command);
+        }
+
+        return result;
     }
+
+    private static String readFileAsString(String fileName) {
+        try {
+            return new String(Files.readAllBytes(Paths.get(fileName)));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     public static String serialize(String response, String reason, String value) {
         Map<String, String> command = new LinkedHashMap<>();

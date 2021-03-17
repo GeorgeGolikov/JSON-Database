@@ -1,4 +1,4 @@
-package client;
+package client.args;
 
 import com.beust.jcommander.Parameter;
 
@@ -22,5 +22,17 @@ public class Args {
 
     public String getText() {
         return text;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
+    }
+
+    public void setCell(String cell) {
+        this.cell = cell;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 }

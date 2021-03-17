@@ -1,5 +1,6 @@
 package client;
 
+import client.args.Args;
 import json.JSON;
 
 import java.io.DataInputStream;
@@ -25,7 +26,7 @@ public class Client {
             output.writeUTF(strToSend);
             System.out.printf("Sent: %s%n", strToSend);
             System.out.printf("Received: %s%n", input.readUTF());
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             System.out.println(e.getMessage());
         }
     }
