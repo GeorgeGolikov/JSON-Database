@@ -25,18 +25,17 @@ public class Server {
             ExecutorService executor = Executors.newFixedThreadPool(poolSize);
 
             while (!executor.isShutdown()) {
-                try (Socket socket = serverSocket.accept()) {
-                    executor.submit(() -> {
-                        try {
-                            boolean stop = processRequests(socket);
-                            if (stop) {
-                                executor.shutdownNow();
-                            }
-                        } catch (IOException e) {
-                            System.out.println(e.getMessage() + "!!!");
+                Socket socket = serverSocket.accept();
+                executor.submit(() -> {
+                    try {
+                        boolean stop = processRequests(socket);
+                        if (stop) {
+                            executor.shutdownNow();
                         }
-                    });
-                }
+                    } catch (IOException e) {
+                        System.out.println(e.getMessage() + "!!!");
+                    }
+                });
             }
         } catch (RuntimeException | IOException e) {
             System.out.println(e.getMessage());
@@ -56,6 +55,7 @@ public class Server {
             out = JSON.serialize("OK", null, null);
             output.writeUTF(out);
             System.out.printf("Sent: %s%n", out);
+            socket.close();
             return true;
         }
         if (commands.isEmpty()) {
@@ -80,6 +80,7 @@ public class Server {
         output.writeUTF(out);
         System.out.printf("Sent: %s%n", out);
 
+        socket.close();
         return false;
     }
 }
