@@ -23,12 +23,13 @@ public class Server {
             System.out.println("Server started!");
             int poolSize = Runtime.getRuntime().availableProcessors();
             ExecutorService executor = Executors.newFixedThreadPool(poolSize);
+            Dao dao = Dao.getInstance();
 
             while (!executor.isShutdown()) {
                 Socket socket = serverSocket.accept();
                 executor.submit(() -> {
                     try {
-                        processRequests(socket);
+                        processRequests(socket, serverSocket);
                     } catch (IOException e) {
                         System.out.println(e.getMessage() + "!!!");
                     }
@@ -39,7 +40,7 @@ public class Server {
         }
     }
 
-    public static void processRequests(Socket socket) throws IOException {
+    public static void processRequests(Socket socket, ServerSocket serverSocket) throws IOException {
         DataInputStream input = new DataInputStream(socket.getInputStream());
         DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 
@@ -52,7 +53,11 @@ public class Server {
             out = JSON.serialize("OK", null, null);
             output.writeUTF(out);
             System.out.printf("Sent: %s%n", out);
+
+            input.close();
+            output.close();
             socket.close();
+            serverSocket.close();
             Runtime.getRuntime().exit(0);
         }
         if (commands.isEmpty()) {
@@ -79,6 +84,8 @@ public class Server {
         output.writeUTF(out);
         System.out.printf("Sent: %s%n", out);
 
+        input.close();
+        output.close();
         socket.close();
     }
 }

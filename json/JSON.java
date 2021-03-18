@@ -21,7 +21,12 @@ public class JSON {
         String result = "";
 
         if ("-in".equals(args.getRequest())) {
-            result = readFileAsString(args.getCell());
+            String FILE_REQUEST_PATH_TEST_ENVIRONMENT =
+                    System.getProperty("user.dir") + "/src/client/data/";
+            String FILE_REQUEST_PATH_LOCAL_ENVIRONMENT =
+                    System.getProperty("user.dir") + "/JSON Database/task/src/client/data/";
+
+            result = readFileAsString(FILE_REQUEST_PATH_TEST_ENVIRONMENT + args.getCell());
         } else {
             Map<String, String> command = new LinkedHashMap<>();
             command.put("type", args.getRequest());

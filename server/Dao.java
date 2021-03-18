@@ -4,6 +4,9 @@ import json.JSON;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 // repository and entity at the same time
 public class Dao {
@@ -11,9 +14,17 @@ public class Dao {
     private final Map<String, String> cells;
 
     private final File dbJson = new File(
-            "/home/george/Work/Java/IdeaProjects/JSON Database/JSON Database/task/src/server/data/db.json"
+            "./src/server/data/db.json"
     );
+//    private final File dbJson = new File(
+//            "/home/george/Work/Java/IdeaProjects/JSON Database/JSON Database/task/src/server/data/db.json"
+//    );
+
     private final String errorStr = "Database not opened";
+
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Lock readLock = lock.readLock();
+    private final Lock writeLock = lock.writeLock();
 
     public static Dao getInstance() {
         if (instance == null) {
@@ -27,20 +38,50 @@ public class Dao {
     }
 
     public String get(String cell) {
-        if (cells == null) return errorStr;
+        readLock.lock();
+
+        if (cells == null) {
+            readLock.unlock();
+            return errorStr;
+        }
+
         String res = cells.get(cell);
+
+        readLock.unlock();
         return res == null ? "ERROR" : res;
     }
 
     public String set(String cell, String text) {
-        if (cells == null) return errorStr;
+        writeLock.lock();
+
+        if (cells == null) {
+            writeLock.unlock();
+            return errorStr;
+        }
+
         cells.put(cell, text);
-        return JSON.serializeAndWrite(cells, dbJson) ? "OK" : errorStr;
+        boolean written = JSON.serializeAndWrite(cells, dbJson);
+
+        writeLock.unlock();
+        return written ? "OK" : errorStr;
     }
 
     public String delete(String cell) {
-        if (cells == null) return errorStr;
-        if (cells.remove(cell) == null) return "ERROR";
-        return JSON.serializeAndWrite(cells, dbJson) ? "OK" : errorStr;
+        writeLock.lock();
+
+        if (cells == null) {
+            writeLock.unlock();
+            return errorStr;
+        }
+
+        if (cells.remove(cell) == null) {
+            writeLock.unlock();
+            return "ERROR";
+        }
+
+        boolean written = JSON.serializeAndWrite(cells, dbJson);
+
+        writeLock.unlock();
+        return written ? "OK" : errorStr;
     }
 }
