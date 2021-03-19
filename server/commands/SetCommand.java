@@ -1,19 +1,20 @@
 package server.commands;
 
+import com.google.gson.JsonElement;
 import server.Dao;
 
 public class SetCommand implements Command {
 
-    private final String cell;
-    private final String text;
+    private final JsonElement key;
+    private final JsonElement value;
 
-    public SetCommand(String cell, String text) {
-        this.cell = cell;
-        this.text = text;
+    public SetCommand(JsonElement key, JsonElement value) {
+        this.key = key;
+        this.value = value;
     }
 
     @Override
     public String execute() {
-        return Dao.getInstance().set(cell, text);
+        return Dao.getInstance().set(key, value);
     }
 }

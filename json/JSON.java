@@ -1,7 +1,14 @@
 package json;
 
 import client.args.Args;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
+import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
@@ -12,9 +19,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class JSON {
     public static String serialize(Args args) {
@@ -72,10 +77,36 @@ public class JSON {
         return true;
     }
 
-    public static UserCommand deserialize(String strJson) {
-        return new Gson().fromJson(strJson, UserCommand.class);
+    public static boolean writeJsonToDB(JsonObject json, File file) {
+        try (JsonWriter writer = new JsonWriter(new FileWriter(file))) {
+            new Gson().toJson(json, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
+    // read json command into UserCommand class
+    public static UserCommand deserialize(String strJson) {
+        UserCommand command = new UserCommand();
+        JsonObject request = new Gson().fromJson(strJson, JsonObject.class);
+
+        JsonElement type = request.get("type");
+        if (type != null && type.isJsonPrimitive()) {
+            command.setType((JsonPrimitive) type);
+        } else {
+            command.setType(null);
+        }
+
+        command.setKey(request.get("key"));
+        command.setValue(request.get("value"));
+
+        return command;
+    }
+
+    // read db.json into HashMap<String, String>
+    // use only if json input is not nested
     public static HashMap<String, String> deserialize(File file) {
         HashMap<String, String> cells = new HashMap<>();
         String key = null;
@@ -100,5 +131,14 @@ public class JSON {
         }
 
         return cells;
+    }
+
+    public static JsonObject readJsonFromDB(File file) {
+        try (JsonReader reader = new JsonReader(new FileReader(file))) {
+            return new Gson().fromJson(reader, JsonObject.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

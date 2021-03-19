@@ -1,11 +1,12 @@
 package server;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import json.UserCommand;
 import server.commands.Command;
 import server.commands.DeleteCommand;
 import server.commands.GetCommand;
 import server.commands.SetCommand;
-
-import java.util.ArrayList;
 
 public class Menu {
 
@@ -23,26 +24,24 @@ public class Menu {
         return command.execute();
     }
 
-    public static Command createCommand(ArrayList<String> input) {
-        if (input.size() == 2) {
-            String command = input.get(0);
-            switch (command) {
-                case "get":
-                    return new GetCommand(input.get(1));
-                case "delete":
-                    return new DeleteCommand(input.get(1));
-                default:
-                    return null;
-            }
-        } else if (input.size() == 3) {
-            String command = input.get(0);
-            if ("set".equals(command)) {
-                return new SetCommand(input.get(1), input.get(2));
-            } else {
+    public static Command createCommand(UserCommand input) {
+        JsonPrimitive type = input.getType();
+        JsonElement key = input.getKey();
+        JsonElement value = input.getValue();
+
+        if (type == null || key == null) return null;
+
+        String command = type.getAsString();
+        switch (command) {
+            case "set":
+                if (value == null) return null;
+                return new SetCommand(key, value);
+            case "get":
+                return new GetCommand(key);
+            case "delete":
+                return new DeleteCommand(key);
+            default:
                 return null;
-            }
-        } else {
-            return null;
         }
     }
 }

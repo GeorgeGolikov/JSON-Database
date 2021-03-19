@@ -1,9 +1,11 @@
 package server;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import json.JSON;
 
 import java.io.File;
-import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -11,7 +13,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 // repository and entity at the same time
 public class Dao {
     private static Dao instance;
-    private final Map<String, String> cells;
+    private final JsonObject db;
 
     private final File dbJson = new File(
             "./src/server/data/db.json"
@@ -34,39 +36,52 @@ public class Dao {
     }
 
     private Dao() {
-        cells = JSON.deserialize(dbJson);
+        db = JSON.readJsonFromDB(dbJson);
     }
 
-    public String get(String cell) {
-        readLock.lock();
-
-        if (cells == null) {
-            readLock.unlock();
-            return errorStr;
-        }
-
-        String res = cells.get(cell);
-
-        readLock.unlock();
-        return res == null ? "ERROR" : res;
-    }
-
-    public String set(String cell, String text) {
+    public String set(JsonElement key, JsonElement value) {
         writeLock.lock();
 
-        if (cells == null) {
+        if (db == null) {
             writeLock.unlock();
             return errorStr;
         }
 
-        cells.put(cell, text);
-        boolean written = JSON.serializeAndWrite(cells, dbJson);
+        boolean written = false;
+        if (key.isJsonPrimitive()) {
+            setValue(db, key.getAsString(), value);
+            written = JSON.writeJsonToDB(db, dbJson);
+        } else if (key.isJsonArray()) {
+            setNestedValue(db, (JsonArray) key, value);
+            written = JSON.writeJsonToDB(db, dbJson);
+        }
 
         writeLock.unlock();
         return written ? "OK" : errorStr;
     }
 
-    public String delete(String cell) {
+//    public String get(JsonElement key) {
+//        readLock.lock();
+//
+//        if (cells == null) {
+//            readLock.unlock();
+//            return errorStr;
+//        }
+//
+//        String res = cells.get(cell);
+//
+//        readLock.unlock();
+//        return res == null ? "ERROR" : res;
+//    }
+
+    public String get(JsonElement key) {
+        KeyObject keyObject = findKeyObject(db, key);
+        String result = getEntity(keyObject);
+
+        return result;
+    }
+
+    public String delete(JsonElement key) {
         writeLock.lock();
 
         if (cells == null) {
@@ -83,5 +98,59 @@ public class Dao {
 
         writeLock.unlock();
         return written ? "OK" : errorStr;
+    }
+
+    private void setValue(JsonObject currentJObject, String key, JsonElement value) {
+        if (value.isJsonObject()) {
+            currentJObject.add(key, value.getAsJsonObject());
+        } else if (value.isJsonPrimitive()) {
+            currentJObject.addProperty(key, value.getAsString());
+        }
+    }
+
+    private void setNestedValue(JsonObject rootJson, JsonArray keys, JsonElement value) {
+        JsonObject currentJObject = rootJson;
+        JsonObject newJObject;
+        String k = "";
+        boolean branchIsCreated = false;
+        for (int i = 0; i < keys.size(); i++) {
+            k = keys.get(i).getAsString();
+            if (!branchIsCreated && currentJObject.keySet().contains(k)) {
+                JsonElement newJObj = currentJObject.get(k);
+                if (newJObj.isJsonObject()) {
+                    newJObject = newJObj.getAsJsonObject();
+
+                    if (i < keys.size() - 1) {
+                        currentJObject = newJObject;
+                    }
+                }
+            } else {
+                if (!branchIsCreated) {
+                    branchIsCreated = true;
+                }
+
+                newJObject = new JsonObject();
+                currentJObject.add(k, newJObject);
+
+                if (i < keys.size() - 1) {
+                    currentJObject = newJObject;
+                }
+            }
+        }
+        setValue(currentJObject, k, value);
+    }
+
+    private static class KeyObject {
+        JsonObject currentJObject;
+        String k;
+
+        public KeyObject(JsonObject currentJObject, String k) {
+            this.currentJObject = currentJObject;
+            this.k = k;
+        }
+
+        public JsonObject getCurrentJObject() {
+            return currentJObject;
+        }
     }
 }

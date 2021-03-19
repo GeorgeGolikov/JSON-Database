@@ -1,17 +1,18 @@
 package server.commands;
 
+import com.google.gson.JsonElement;
 import server.Dao;
 
 public class DeleteCommand implements Command {
 
-    private final String cell;
+    private final JsonElement key;
 
-    public DeleteCommand(String cell) {
-        this.cell = cell;
+    public DeleteCommand(JsonElement key) {
+        this.key = key;
     }
 
     @Override
     public String execute() {
-        return Dao.getInstance().delete(cell);
+        return Dao.getInstance().delete(key);
     }
 }

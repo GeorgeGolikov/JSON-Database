@@ -1,8 +1,5 @@
 package server.parsing;
 
-import json.UserCommand;
-import server.Menu;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -11,6 +8,7 @@ import java.util.Scanner;
     An example of parsing console commands with Scanner, line by line
  */
 
+@Deprecated
 public final class Parser {
 
     public static void handleConsole() {
@@ -26,7 +24,7 @@ public final class Parser {
                     if (userCommand == null) {
                         return;
                     }
-                    Menu.createCommand(userCommand);
+                    userCommand.forEach(System.out::println);
                 } catch (RuntimeException e) {
                     System.out.println(e.getMessage());
                 }
@@ -53,19 +51,5 @@ public final class Parser {
             }
             return new ArrayList<>();
         }
-    }
-
-    public static ArrayList<String> parseJsonPojoCommand(UserCommand command) {
-        if (command == null) return new ArrayList<>();
-
-        if ("exit".equals(command.getType())) {
-            return null;
-        }
-
-        if (command.getValue() == null) {
-            return new ArrayList<>(List.of(command.getType(), command.getKey()));
-        }
-
-        return new ArrayList<>(List.of(command.getType(), command.getKey(), command.getValue()));
     }
 }
