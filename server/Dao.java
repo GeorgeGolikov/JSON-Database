@@ -1,5 +1,6 @@
 package server;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -13,7 +14,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 // repository and entity at the same time
 public class Dao {
     private static Dao instance;
-    private final JsonObject db;
+    private JsonObject db;
 
     private final File dbJson = new File(
             "./src/server/data/db.json"
@@ -60,44 +61,45 @@ public class Dao {
         return written ? "OK" : errorStr;
     }
 
-//    public String get(JsonElement key) {
-//        readLock.lock();
-//
-//        if (cells == null) {
-//            readLock.unlock();
-//            return errorStr;
-//        }
-//
-//        String res = cells.get(cell);
-//
-//        readLock.unlock();
-//        return res == null ? "ERROR" : res;
-//    }
-
     public String get(JsonElement key) {
-        KeyObject keyObject = findKeyObject(db, key);
-        String result = getEntity(keyObject);
+        readLock.lock();
 
-        return result;
+        if (db == null) {
+            readLock.unlock();
+            return errorStr;
+        }
+
+        String res = getEntity(findKeyObject(db, key));
+
+        readLock.unlock();
+        return res == null ? "ERROR" : res;
     }
 
     public String delete(JsonElement key) {
         writeLock.lock();
 
-        if (cells == null) {
+        if (db == null) {
             writeLock.unlock();
             return errorStr;
         }
 
-        if (cells.remove(cell) == null) {
+        KeyObject keyObject = findKeyObject(db, key);
+
+        JsonObject newJsonObject = deleteEntity(db, keyObject);
+        if (newJsonObject == null) {
             writeLock.unlock();
             return "ERROR";
         }
 
-        boolean written = JSON.serializeAndWrite(cells, dbJson);
+        boolean written = JSON.writeJsonToDB(newJsonObject, dbJson);
+        if (written) {
+            this.db = JSON.readJsonFromDB(dbJson);
+            writeLock.unlock();
+            return "OK";
+        }
 
         writeLock.unlock();
-        return written ? "OK" : errorStr;
+        return errorStr;
     }
 
     private void setValue(JsonObject currentJObject, String key, JsonElement value) {
@@ -138,6 +140,56 @@ public class Dao {
             }
         }
         setValue(currentJObject, k, value);
+    }
+
+    private String getEntity(KeyObject keyObject) {
+        JsonElement jsonEl = keyObject.getCurrentJObject().get(keyObject.k);
+        if (jsonEl == null) {
+            return null;
+        }
+        if (jsonEl.isJsonObject()) return new Gson().toJson(jsonEl);
+        else if (jsonEl.isJsonPrimitive()) {
+            return jsonEl.getAsString();
+        }
+        return null;
+    }
+
+    private JsonObject deleteEntity(final JsonObject rootJObject, final KeyObject keyObject) {
+        if (keyObject.currentJObject.keySet().contains(keyObject.k)) {
+            keyObject.currentJObject.remove(keyObject.k);
+            return rootJObject;
+        }
+        return null;
+    }
+
+    private KeyObject findKeyObject(final JsonObject currentJObject, final JsonElement jeKey) {
+        JsonObject newJObject = null;
+        KeyObject keyObject = new KeyObject(currentJObject, "");
+
+        if (jeKey.isJsonArray()) {
+            JsonArray keys = jeKey.getAsJsonArray();
+            for (int i = 0; i < keys.size(); i++) {
+                keyObject.k = keys.get(i).getAsString();
+                if (keyObject.currentJObject.keySet().contains(keyObject.k)) {
+                    JsonElement jElem = keyObject.currentJObject.get(keyObject.k);
+                    if (jElem.isJsonObject()) {
+                        newJObject = jElem.getAsJsonObject();
+                    } else if (jElem.isJsonPrimitive()) {
+                        if (i < keys.size() - 1) {
+                            break;
+                        }
+                    }
+                    if (i < keys.size() - 1) {
+                        keyObject.currentJObject = newJObject;
+                    }
+                } else {
+                    break;
+                }
+            }
+        } else if (jeKey.isJsonPrimitive()) {
+            keyObject.k = jeKey.getAsString();
+        }
+        return keyObject;
     }
 
     private static class KeyObject {
