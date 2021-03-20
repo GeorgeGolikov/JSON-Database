@@ -70,6 +70,7 @@ public class Server {
         } else {
             Menu invoker = new Menu(command);
             String result = invoker.executeCommand();
+
             if ("Database not opened".equals(result)) {
                 out = JSON.serialize("ERROR", result, null);
             } else if (!"OK".equals(result) && !"ERROR".equals(result)) {

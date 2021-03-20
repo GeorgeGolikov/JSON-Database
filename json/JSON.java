@@ -37,34 +37,23 @@ public class JSON {
     }
 
     // serialize server response
-//    public static String serialize(String response, String reason, String value) {
-//        Gson translator = new Gson();
-//        JsonObject objectToReturn = new JsonObject();
-//
-//        JsonPrimitive jResponse = translator.fromJson(response, JsonPrimitive.class);
-//        objectToReturn.add("response", jResponse);
-//
-//        if (reason != null) {
-//            JsonPrimitive jReason = translator.fromJson(reason, JsonPrimitive.class);
-//            objectToReturn.add("reason", jReason);
-//        }
-//
-//        if (value != null) {
-//            JsonElement jValue = new Gson().fromJson(value, JsonElement.class);
-//            objectToReturn.add("value", jValue);
-//        }
-//
-//        return translator.toJson(objectToReturn);
-//    }
-
+    // Gson cannot create json primitives from strings with whitespace characters!!!!!!!! e.g. "Elon Mask"
     public static String serialize(String response, String reason, String value) {
-        Map<String, String> command = new LinkedHashMap<>();
+        if (reason != null) {
 
-        command.put("response", response);
-        if (reason != null) command.put("reason", reason);
-        if (value != null) command.put("value", value);
+            return String.format("{\"response\":\"%s\",\"reason\":\"%s\"}", response, reason);
 
-        return new Gson().toJson(command);
+        } else if (value != null) {
+            if (value.contains("{")) {
+
+                return String.format("{\"response\":\"%s\",\"value\":%s}", response, value);
+
+            }
+
+            return String.format("{\"response\":\"%s\",\"value\":\"%s\"}", response, value);
+        }
+
+        return String.format("{\"response\":\"%s\"}", response);
     }
 
     // read json command into UserCommand class
