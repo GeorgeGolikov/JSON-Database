@@ -5,7 +5,8 @@ JSON Database - the project for JetBrains Academy.
 * [JCommander](http://jcommander.org/#_overview)
 * java.net.Socket
 * [JSON](https://zetcode.com/java/gson/)
-* Multithreading
+* Multithreading (Executor and ReentrantReadWriteLock used)
+* FileReader & FileWriter streams
 ## Patterns used
 DAO, Singleton, Command.
 ## Features
